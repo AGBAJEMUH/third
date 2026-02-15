@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
     try {
         const user = await getCurrentUser();
         if (!user) {
+            console.error('[API] Unauthorized map creation attempt: No user found');
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 

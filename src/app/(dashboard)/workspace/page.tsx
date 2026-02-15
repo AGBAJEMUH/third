@@ -20,12 +20,14 @@ export default function WorkspacePage() {
     const [showNewMapModal, setShowNewMapModal] = useState(false);
     const [newMapTitle, setNewMapTitle] = useState('');
     const [deleteId, setDeleteId] = useState<number | null>(null);
+    const [isCreating, setIsCreating] = useState(false);
 
     useEffect(() => {
         fetchMaps();
     }, []);
 
     const fetchMaps = async () => {
+        setLoading(true);
         try {
             const res = await fetch('/api/maps');
             if (!res.ok) {
@@ -45,7 +47,8 @@ export default function WorkspacePage() {
     };
 
     const createNewMap = async () => {
-        if (!newMapTitle.trim()) return;
+        if (!newMapTitle.trim() || isCreating) return;
+        setIsCreating(true);
 
         try {
             const res = await fetch('/api/maps', {
@@ -60,12 +63,27 @@ export default function WorkspacePage() {
                 }),
             });
 
-            if (!res.ok) throw new Error('Failed to create map');
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to create map');
+            }
 
             const data = await res.json();
+
+            // Invalidate the cache to ensure the dashboard represents the new state
+            router.refresh();
+
+            // Redirect to the new map editor
             router.push(`/workspace/${data.mapId}`);
-        } catch (error) {
+
+            // Close modal immediately
+            setShowNewMapModal(false);
+            setNewMapTitle('');
+        } catch (error: any) {
             console.error('Error creating map:', error);
+            alert(error.message || 'Failed to ignite the forge. Please try again.');
+        } finally {
+            setIsCreating(false);
         }
     };
 
@@ -234,10 +252,13 @@ export default function WorkspacePage() {
                                 </button>
                                 <button
                                     onClick={createNewMap}
-                                    disabled={!newMapTitle.trim()}
-                                    className="flex-1 px-4 py-4 rounded-2xl bg-gradient-to-r from-primary-500 to-accent-500 text-white font-bold shadow-xl shadow-primary-500/20 transition-all disabled:opacity-50"
+                                    disabled={!newMapTitle.trim() || isCreating}
+                                    className="flex-1 px-4 py-4 rounded-2xl bg-gradient-to-r from-primary-500 to-accent-500 text-white font-bold shadow-xl shadow-primary-500/20 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
                                 >
-                                    Forge
+                                    {isCreating && (
+                                        <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                    )}
+                                    <span>{isCreating ? 'Forging...' : 'Forge'}</span>
                                 </button>
                             </div>
                         </motion.div>

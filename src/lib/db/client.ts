@@ -10,6 +10,21 @@ const client = createClient({
 
 export default client;
 
+// Helper to convert BigInt values to numbers for JSON serialization
+function convertBigInts(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (typeof obj === 'bigint') return Number(obj);
+  if (Array.isArray(obj)) return obj.map(convertBigInts);
+  if (typeof obj === 'object') {
+    const newObj: any = {};
+    for (const key in obj) {
+      newObj[key] = convertBigInts(obj[key]);
+    }
+    return newObj;
+  }
+  return obj;
+}
+
 // User queries
 export const userQueries = {
   create: async (email: string, passwordHash: string, name: string) => {
@@ -25,7 +40,7 @@ export const userQueries = {
       sql: `SELECT * FROM users WHERE email = ?`,
       args: [email]
     });
-    return result.rows[0];
+    return convertBigInts(result.rows[0]);
   },
 
   findById: async (id: number) => {
@@ -33,7 +48,7 @@ export const userQueries = {
       sql: `SELECT id, email, name, created_at FROM users WHERE id = ?`,
       args: [id]
     });
-    return result.rows[0];
+    return convertBigInts(result.rows[0]);
   },
 };
 
@@ -52,7 +67,7 @@ export const mindMapQueries = {
       sql: `SELECT * FROM mind_maps WHERE id = ?`,
       args: [id]
     });
-    return result.rows[0];
+    return convertBigInts(result.rows[0]);
   },
 
   findByUserId: async (userId: number) => {
@@ -60,7 +75,7 @@ export const mindMapQueries = {
       sql: `SELECT id, title, description, is_public, created_at, updated_at FROM mind_maps WHERE user_id = ? ORDER BY updated_at DESC`,
       args: [userId]
     });
-    return result.rows;
+    return convertBigInts(result.rows);
   },
 
   update: async (title: string, description: string | null, dataContent: string, id: string | number, userId: number) => {
@@ -84,7 +99,7 @@ export const mindMapQueries = {
 export const templateQueries = {
   findAll: async () => {
     const result = await client.execute(`SELECT * FROM templates ORDER BY category, name`);
-    return result.rows;
+    return convertBigInts(result.rows);
   },
 
   findById: async (id: number) => {
@@ -92,7 +107,7 @@ export const templateQueries = {
       sql: `SELECT * FROM templates WHERE id = ?`,
       args: [id]
     });
-    return result.rows[0];
+    return convertBigInts(result.rows[0]);
   },
 };
 
@@ -111,6 +126,6 @@ export const collaboratorQueries = {
       sql: `SELECT c.*, u.name, u.email FROM collaborators c JOIN users u ON c.user_id = u.id WHERE c.mind_map_id = ?`,
       args: [mapId]
     });
-    return result.rows;
+    return convertBigInts(result.rows);
   },
 };
