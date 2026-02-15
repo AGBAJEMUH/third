@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         const validatedData = loginSchema.parse(body);
 
         // Find user
-        const user = userQueries.findByEmail.get(validatedData.email) as any;
+        const user = await userQueries.findByEmail(validatedData.email) as any;
         if (!user) {
             return NextResponse.json(
                 { error: 'Invalid email or password' },

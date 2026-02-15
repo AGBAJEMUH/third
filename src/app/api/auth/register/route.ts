@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
         const validatedData = registerSchema.parse(body);
 
         // Check if user already exists
-        const existingUser = userQueries.findByEmail.get(validatedData.email) as any;
+        const existingUser = await userQueries.findByEmail(validatedData.email) as any;
         if (existingUser) {
             return NextResponse.json(
                 { error: 'Email already registered' },
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         const passwordHash = await bcrypt.hash(validatedData.password, 10);
 
         // Create user
-        const result = userQueries.create.run(
+        const result = await userQueries.create(
             validatedData.email,
             passwordHash,
             validatedData.name
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
         // Generate JWT
         const token = signToken({
-            userId: result.lastInsertRowid as number,
+            userId: Number(result.lastInsertRowid),
             email: validatedData.email,
             name: validatedData.name,
         });
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             user: {
-                id: result.lastInsertRowid,
+                id: Number(result.lastInsertRowid),
                 email: validatedData.email,
                 name: validatedData.name,
             },

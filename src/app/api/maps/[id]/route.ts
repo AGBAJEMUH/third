@@ -15,7 +15,7 @@ export async function GET(
         }
 
         const { id } = await params;
-        const map = mindMapQueries.findById.get(id) as any;
+        const map = await mindMapQueries.findById(id) as any;
 
         if (!map) {
             return NextResponse.json({ error: 'Mind map not found' }, { status: 404 });
@@ -51,7 +51,7 @@ export async function PUT(
         const body = await request.json();
         const validatedData = mindMapSchema.parse(body);
 
-        const result = mindMapQueries.update.run(
+        const result = await mindMapQueries.update(
             validatedData.title,
             validatedData.description || null,
             validatedData.data,
@@ -88,7 +88,7 @@ export async function DELETE(
         }
 
         const { id } = await params;
-        const result = mindMapQueries.delete.run(id, user.userId);
+        const result = await mindMapQueries.delete(id, user.userId);
 
         if (result.changes === 0) {
             return NextResponse.json(

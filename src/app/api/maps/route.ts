@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const maps = mindMapQueries.findByUserId.all(user.userId);
+        const maps = await mindMapQueries.findByUserId(user.userId);
         return NextResponse.json({ maps });
     } catch (error: any) {
         console.error('Error fetching mind maps:', error);
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const validatedData = mindMapSchema.parse(body);
 
-        const result = mindMapQueries.create.run(
+        const result = await mindMapQueries.create(
             user.userId,
             validatedData.title,
             validatedData.description || null,
