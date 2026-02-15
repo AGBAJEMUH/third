@@ -13,10 +13,11 @@ export default client;
 // User queries
 export const userQueries = {
   create: async (email: string, passwordHash: string, name: string) => {
-    return await client.execute({
+    const result = await client.execute({
       sql: `INSERT INTO users (email, password_hash, name) VALUES (?, ?, ?)`,
       args: [email, passwordHash, name]
     });
+    return { lastInsertRowid: Number(result.lastInsertRowid) };
   },
 
   findByEmail: async (email: string) => {
@@ -43,7 +44,7 @@ export const mindMapQueries = {
       sql: `INSERT INTO mind_maps (user_id, title, description, data, is_public) VALUES (?, ?, ?, ?, ?)`,
       args: [userId, title, description, dataContent, isPublic]
     });
-    return { lastInsertRowid: result.lastInsertRowid };
+    return { lastInsertRowid: Number(result.lastInsertRowid) };
   },
 
   findById: async (id: string | number) => {
@@ -98,10 +99,11 @@ export const templateQueries = {
 // Collaborator queries
 export const collaboratorQueries = {
   add: async (mindMapId: number, userId: number, permission: string) => {
-    return await client.execute({
+    const result = await client.execute({
       sql: `INSERT INTO collaborators (mind_map_id, user_id, permission) VALUES (?, ?, ?)`,
       args: [mindMapId, userId, permission]
     });
+    return { lastInsertRowid: Number(result.lastInsertRowid) };
   },
 
   findByMapId: async (mapId: string | number) => {
