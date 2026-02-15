@@ -30,8 +30,8 @@ export default function RegisterPage() {
                 return;
             }
 
-            // Redirect to login after successful registration
-            router.push('/login');
+            // Redirect to Home after successful registration
+            router.push('/');
         } catch (err) {
             setError('An error occurred. Please try again.');
             setLoading(false);
