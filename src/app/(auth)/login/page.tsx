@@ -30,6 +30,8 @@ export default function LoginPage() {
                 return;
             }
 
+            // Invalidate cache and redirect
+            router.refresh();
             router.push('/workspace');
         } catch (err) {
             setError('An error occurred. Please try again.');

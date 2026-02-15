@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+// Initialize Gemini AI lazily to ensure environment variables are loaded
+const getModel = () => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return null;
+    const genAI = new GoogleGenerativeAI(apiKey);
+    return genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+};
 
 export async function POST(request: NextRequest) {
     try {
@@ -16,10 +20,12 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const model = getModel();
+
         // Check for API key
-        if (!process.env.GEMINI_API_KEY) {
+        if (!model) {
             return NextResponse.json({
-                suggestions: ['No API Key set', 'Please add GEMINI_API_KEY', 'to your .env file'],
+                suggestions: ['API Key Missing', 'Please add your key', 'to Vercel settings'],
                 message: 'AI key missing'
             });
         }
